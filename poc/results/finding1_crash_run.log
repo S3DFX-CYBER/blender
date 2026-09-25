@@ -1,0 +1,15 @@
+[case1] file: inputs/poc1_crash_large.ply
+  parsed OK: vertices=20000008
+  custom attr f_dc_0     size=8
+  custom attr f_dc_1     size=8
+  custom attr f_dc_2     size=8
+  custom attr opacity    size=8
+  custom attr scale_0    size=8
+  custom attr scale_1    size=8
+  custom attr scale_2    size=8
+  custom attr rot_0      size=8
+  custom attr rot_1      size=8
+  custom attr rot_2      size=8
+  custom attr rot_3      size=8
+  is_data_gaussian_splat conditions hold: YES -> convert_gsplat_ply_to_point_cloud() is called
+exit=139

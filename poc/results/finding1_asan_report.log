@@ -1,0 +1,75 @@
+[case1] file: inputs/poc1_duplicate_vertex_elements.ply
+  parsed OK: vertices=72
+  custom attr f_dc_0     size=8
+  custom attr f_dc_1     size=8
+  custom attr f_dc_2     size=8
+  custom attr opacity    size=8
+  custom attr scale_0    size=8
+  custom attr scale_1    size=8
+  custom attr scale_2    size=8
+  custom attr rot_0      size=8
+  custom attr rot_1      size=8
+  custom attr rot_2      size=8
+  custom attr rot_3      size=8
+  is_data_gaussian_splat conditions hold: YES -> convert_gsplat_ply_to_point_cloud() is called
+=================================================================
+==566==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x7ae4a4ba01b0 at pc 0x55e6a3b0f1d5 bp 0x7eb4a54bbc80 sp 0x7eb4a54bbc78
+READ of size 4 at 0x7ae4a4ba01b0 thread T0
+    #0 0x55e6a3b0f1d4 in run_case1 /scratch/work/poc/poc_harness_generated.cc:283
+    #1 0x55e6a3b0ffec in main /scratch/work/poc/poc_harness_generated.cc:339
+    #2 0x7eeee5b45249  (/lib/x86_64-linux-gnu/libc.so.6+0x27249) (BuildId: 93ac61ec5a8eb1396f9fbd350e3169a558528a40)
+    #3 0x7eeee5b45304 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x27304) (BuildId: 93ac61ec5a8eb1396f9fbd350e3169a558528a40)
+    #4 0x55e6a3b073e4 in _start (/scratch/work/poc/poc_harness_asan+0x43e4)
+
+0x7ae4a4ba01b0 is located 0 bytes after 32-byte region [0x7ae4a4ba0190,0x7ae4a4ba01b0)
+allocated by thread T0 here:
+    #0 0x7eeee61f040f in posix_memalign ../../../../libsanitizer/asan/asan_malloc_linux.cpp:139
+    #1 0x55e6a3b20afc in MEM_new_uninitialized_aligned harness/stubs/MEM_guardedalloc.h:25
+    #2 0x55e6a3b20afc in blender::GuardedAllocator::allocate(unsigned long, unsigned long, char const*) /scratch/repos/blender/source/blender/blenlib/BLI_allocator.hh:47
+    #3 0x55e6a3b20afc in blender::Vector<float, 4l, blender::GuardedAllocator>::realloc_to_at_least(long) /scratch/repos/blender/source/blender/blenlib/BLI_vector.hh:1135
+    #4 0x55e6a3b17506 in blender::Vector<float, 4l, blender::GuardedAllocator>::reserve(long) /scratch/repos/blender/source/blender/blenlib/BLI_vector.hh:408
+    #5 0x55e6a3b17506 in _ZN7blender6VectorIfLl4ENS_16GuardedAllocatorEEC4IfEENS_4SpanIT_EES1_Q16is_convertible_vITL0__S5_E /scratch/repos/blender/source/blender/blenlib/BLI_vector.hh:179
+    #6 0x55e6a3b17506 in blender::Vector<float, 4l, blender::GuardedAllocator>::Vector(blender::Vector<float, 4l, blender::GuardedAllocator> const&) /scratch/repos/blender/source/blender/blenlib/BLI_vector.hh:229
+    #7 0x55e6a3b17506 in blender::io::ply::PlyCustomAttribute::PlyCustomAttribute(blender::io::ply::PlyCustomAttribute const&) /scratch/repos/blender/source/blender/io/ply/intern/ply_data.hh:22
+    #8 0x55e6a3b17506 in void blender::Vector<blender::io::ply::PlyCustomAttribute, 4l, blender::GuardedAllocator>::append_unchecked_as<blender::io::ply::PlyCustomAttribute const&>(blender::io::ply::PlyCustomAttribute const&) /scratch/repos/blender/source/blender/blenlib/BLI_vector.hh:560
+    #9 0x55e6a3b17506 in void blender::Vector<blender::io::ply::PlyCustomAttribute, 4l, blender::GuardedAllocator>::append_as<blender::io::ply::PlyCustomAttribute const&>(blender::io::ply::PlyCustomAttribute const&) /scratch/repos/blender/source/blender/blenlib/BLI_vector.hh:510
+    #10 0x55e6a3b17506 in blender::Vector<blender::io::ply::PlyCustomAttribute, 4l, blender::GuardedAllocator>::append(blender::io::ply::PlyCustomAttribute const&) /scratch/repos/blender/source/blender/blenlib/BLI_vector.hh:500
+    #11 0x55e6a3b17506 in load_vertex_element /scratch/repos/blender/source/blender/io/ply/importer/ply_import_data.cc:273
+    #12 0x55e6a3b19e23 in blender::io::ply::import_ply_data(blender::io::ply::PlyReadBuffer&, blender::io::ply::PlyHeader&) /scratch/repos/blender/source/blender/io/ply/importer/ply_import_data.cc:655
+    #13 0x55e6a3b0db60 in run_case1 /scratch/work/poc/poc_harness_generated.cc:217
+    #14 0x55e6a3b0ffec in main /scratch/work/poc/poc_harness_generated.cc:339
+    #15 0x7eeee5b45249  (/lib/x86_64-linux-gnu/libc.so.6+0x27249) (BuildId: 93ac61ec5a8eb1396f9fbd350e3169a558528a40)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /scratch/work/poc/poc_harness_generated.cc:283 in run_case1
+Shadow bytes around the buggy address:
+  0x7ae4a4b9ff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7ae4a4b9ff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7ae4a4ba0000: fa fa 00 00 00 fa fa fa fd fd fd fd fa fa 00 00
+  0x7ae4a4ba0080: 00 00 fa fa fd fd fd fd fa fa 00 00 00 00 fa fa
+  0x7ae4a4ba0100: fd fd fd fd fa fa 00 00 00 00 fa fa fd fd fd fd
+=>0x7ae4a4ba0180: fa fa 00 00 00 00[fa]fa fd fd fd fd fa fa 00 00
+  0x7ae4a4ba0200: 00 00 fa fa fd fd fd fd fa fa 00 00 00 00 fa fa
+  0x7ae4a4ba0280: fd fd fd fd fa fa 00 00 00 00 fa fa fd fd fd fd
+  0x7ae4a4ba0300: fa fa 00 00 00 00 fa fa fd fd fd fd fa fa 00 00
+  0x7ae4a4ba0380: 00 00 fa fa fd fd fd fd fa fa 00 00 00 00 fa fa
+  0x7ae4a4ba0400: fd fd fd fd fa fa 00 00 00 00 fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==566==ABORTING

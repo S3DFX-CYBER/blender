@@ -1,0 +1,61 @@
+############ FINDING 2 ############
+--- [2-control] ASAN, valid header (expect clean) ---
+[case2] file: inputs/poc2_control_valid_header.ply
+  calling read_header() on header with `property` line...
+  read_header returned: nullptr (OK), elements=1
+[case2] RESULT: no crash (control file?)
+exit=0
+
+--- [2-poc] ASAN, property before element (expect crash) ---
+[case2] file: inputs/poc2_property_before_element.ply
+  calling read_header() on header with `property` line...
+  read_header returned: nullptr (OK), elements=0
+[case2] RESULT: no crash (control file?)
+
+=================================================================
+==541==ERROR: LeakSanitizer: detected memory leaks
+
+Direct leak of 40 byte(s) in 1 object(s) allocated from:
+    #0 0x7ecb5dfcb40f in posix_memalign ../../../../libsanitizer/asan/asan_malloc_linux.cpp:139
+    #1 0x55cd1b95c614 in MEM_new_uninitialized_aligned harness/stubs/MEM_guardedalloc.h:25
+    #2 0x55cd1b95c614 in blender::GuardedAllocator::allocate(unsigned long, unsigned long, char const*) /scratch/repos/blender/source/blender/blenlib/BLI_allocator.hh:47
+    #3 0x55cd1b95c614 in blender::Vector<blender::io::ply::PlyProperty, 4l, blender::GuardedAllocator>::realloc_to_at_least(long) /scratch/repos/blender/source/blender/blenlib/BLI_vector.hh:1135
+    #4 0x55cd1b95717a in blender::Vector<blender::io::ply::PlyProperty, 4l, blender::GuardedAllocator>::ensure_space_for_one() /scratch/repos/blender/source/blender/blenlib/BLI_vector.hh:1117
+    #5 0x55cd1b95717a in void blender::Vector<blender::io::ply::PlyProperty, 4l, blender::GuardedAllocator>::append_as<blender::io::ply::PlyProperty const&>(blender::io::ply::PlyProperty const&) /scratch/repos/blender/source/blender/blenlib/BLI_vector.hh:509
+    #6 0x55cd1b95717a in blender::Vector<blender::io::ply::PlyProperty, 4l, blender::GuardedAllocator>::append(blender::io::ply::PlyProperty const&) /scratch/repos/blender/source/blender/blenlib/BLI_vector.hh:500
+    #7 0x55cd1b95717a in blender::io::ply::read_header(blender::io::ply::PlyReadBuffer&, blender::io::ply::PlyHeader&) /scratch/work/poc/poc_harness_generated.cc:139
+    #8 0x55cd1b95a207 in run_case2 /scratch/work/poc/poc_harness_generated.cc:304
+    #9 0x55cd1b95a207 in main /scratch/work/poc/poc_harness_generated.cc:345
+    #10 0x7ecb5d920249  (/lib/x86_64-linux-gnu/libc.so.6+0x27249) (BuildId: 93ac61ec5a8eb1396f9fbd350e3169a558528a40)
+
+SUMMARY: AddressSanitizer: 40 byte(s) leaked in 1 allocation(s).
+
+--- [2-poc] VANILLA, property before element ---
+[case2] file: inputs/poc2_property_before_element.ply
+  calling read_header() on header with `property` line...
+/tmp/cmd-8c34768ea7e6446eba18952a6ad4ff05.sh: line 21:   545 Segmentation fault      ./poc_harness_vanilla case2 inputs/poc2_property_before_element.ply
+exit=139
+
+############ FINDING 3 ############
+--- [3-control] ASAN, valid count (expect clean) ---
+[case3] file: inputs/poc3_control_valid_count.ply
+  calling read_header() on header with `element vertex x`...
+  read_header returned: nullptr (OK)
+[case3] RESULT: no exception (control file?)
+exit=0
+
+--- [3-poc] ASAN, non-numeric count (expect uncaught exception) ---
+[case3] file: inputs/poc3_non_numeric_count.ply
+  calling read_header() on header with `element vertex x`...
+terminate called after throwing an instance of 'std::invalid_argument'
+  what():  stoi
+/tmp/cmd-8c34768ea7e6446eba18952a6ad4ff05.sh: line 21:   549 Aborted                 ./poc_harness_asan case3 inputs/poc3_non_numeric_count.ply
+exit=134
+
+--- [3-poc] VANILLA, out-of-range count ---
+[case3] file: inputs/poc3_out_of_range_count.ply
+  calling read_header() on header with `element vertex x`...
+terminate called after throwing an instance of 'std::out_of_range'
+  what():  stoi
+/tmp/cmd-8c34768ea7e6446eba18952a6ad4ff05.sh: line 21:   550 Aborted                 ./poc_harness_vanilla case3 inputs/poc3_out_of_range_count.ply
+exit=134

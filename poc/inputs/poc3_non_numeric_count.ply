@@ -1,0 +1,6 @@
+ply
+format ascii 1.0
+comment PoC: non-numeric element count (Finding 3)
+element vertex x
+property float x
+end_header

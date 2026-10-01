@@ -1,0 +1,20 @@
+Fix PLY importer crash on a `property` line without a preceding `element`.
+
+read_header() appended to `elements.last()` while the list could still be
+empty; Vector::last() is assert-only, so a crafted header made the append
+write through a garbage container reference (crash).
+
+--- a/source/blender/io/ply/importer/ply_import.cc
++++ b/source/blender/io/ply/importer/ply_import.cc
+@@ -143,6 +143,11 @@
+       r_header.elements.append(element);
+     }
+     else if (parse_keyword(line, "property")) {
++      if (r_header.elements.is_empty()) {
++        /* A property must belong to an element. The old Python based importer rejected
++         * this input as well ("Property without element"). */
++        return "Property line without an element.";
++      }
+       PlyProperty property;
+       skip_space(line);
+       if (parse_keyword(line, "list")) {

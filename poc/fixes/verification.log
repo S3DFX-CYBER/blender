@@ -1,0 +1,61 @@
+############ PATCHED BUILD — Finding 1 ############
+--- case1 POC (was: ASAN heap-buffer-overflow) ---
+[case1] file: inputs/poc1_duplicate_vertex_elements.ply
+  import error: Multiple 'vertex' elements are not supported
+exit=1
+--- case1 CONTROL ---
+[case1] file: inputs/poc1_control_single_element.ply
+  parsed OK: vertices=72
+  custom attr f_dc_0     size=72
+  custom attr f_dc_1     size=72
+  custom attr f_dc_2     size=72
+  custom attr opacity    size=72
+  custom attr scale_0    size=72
+  custom attr scale_1    size=72
+  custom attr scale_2    size=72
+  custom attr rot_0      size=72
+  custom attr rot_1      size=72
+  custom attr rot_2      size=72
+  custom attr rot_3      size=72
+  is_data_gaussian_splat conditions hold: YES -> convert_gsplat_ply_to_point_cloud() is called
+  consumer loop finished: 0 out-of-bounds reads performed (sink=2204712.000000)
+[case1] RESULT: no out-of-bounds access detected (control file?)
+exit=0
+--- case1 POC, vanilla (was: 64 OOB reads / SIGSEGV at scale) ---
+[case1] file: inputs/poc1_duplicate_vertex_elements.ply
+  import error: Multiple 'vertex' elements are not supported
+exit=1
+
+############ PATCHED BUILD — Finding 2 ############
+--- case2 POC (was: deterministic SIGSEGV) ---
+[case2] file: inputs/poc2_property_before_element.ply
+  calling read_header() on header with `property` line...
+  read_header returned: Property line without an element., elements=0
+[case2] RESULT: no crash (control file?)
+exit=0
+--- case2 CONTROL ---
+[case2] file: inputs/poc2_control_valid_header.ply
+  calling read_header() on header with `property` line...
+  read_header returned: nullptr (OK), elements=1
+[case2] RESULT: no crash (control file?)
+exit=0
+
+############ PATCHED BUILD — Finding 3 ############
+--- case3 POC, non-numeric (was: terminate/std::invalid_argument) ---
+[case3] file: inputs/poc3_non_numeric_count.ply
+  calling read_header() on header with `element vertex x`...
+  read_header returned: Invalid element count.
+[case3] RESULT: no exception (control file?)
+exit=0
+--- case3 POC, out-of-range (was: std::out_of_range) ---
+[case3] file: inputs/poc3_out_of_range_count.ply
+  calling read_header() on header with `element vertex x`...
+  read_header returned: Invalid element count.
+[case3] RESULT: no exception (control file?)
+exit=0
+--- case3 CONTROL ---
+[case3] file: inputs/poc3_control_valid_count.ply
+  calling read_header() on header with `element vertex x`...
+  read_header returned: nullptr (OK)
+[case3] RESULT: no exception (control file?)
+exit=0

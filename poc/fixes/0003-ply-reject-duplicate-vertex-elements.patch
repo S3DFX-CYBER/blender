@@ -1,0 +1,54 @@
+Fix out-of-bounds reads from PLY files with multiple `vertex` elements.
+
+Custom attribute arrays are sized to their own element's vertex count, while
+the mesh/gsplat consumers index them by the combined vertex count. Reject
+duplicate vertex elements, and guard the consumers against size mismatch.
+
+--- a/source/blender/io/ply/importer/ply_import_data.cc
++++ b/source/blender/io/ply/importer/ply_import_data.cc
+@@ -652,6 +652,13 @@
+   for (const PlyElement &element : header.elements) {
+     const char *error = nullptr;
+     if (element.name == "vertex") {
++      if (got_vertex) {
++        /* Attribute arrays are sized to their own element's vertex count, while the
++         * consumers index them by the combined vertex count of all vertex elements.
++         * Multiple vertex elements would therefore lead to out-of-bounds reads. */
++        data->error = "Multiple 'vertex' elements are not supported";
++        return data;
++      }
+       error = load_vertex_element(file, header, element, data.get());
+       got_vertex = true;
+     }
+--- a/source/blender/io/ply/importer/ply_import_mesh.cc
++++ b/source/blender/io/ply/importer/ply_import_mesh.cc
+@@ -150,6 +150,11 @@
+   /* Custom attributes: add them after anything above. */
+   if (params.import_attributes && !data.vertex_custom_attr.is_empty()) {
+     for (const PlyCustomAttribute &attr : data.vertex_custom_attr) {
++      if (attr.data.size() != data.vertices.size()) {
++        CLOG_WARN(
++            &LOG, "PLY Importer: skipping attribute '%s' with unexpected size", attr.name.c_str());
++        continue;
++      }
+       attributes.add<float>(attr.name,
+                             bke::AttrDomain::Point,
+                             bke::AttributeInitVArray(VArray<float>::from_span(attr.data)));
+--- a/source/blender/io/ply/importer/ply_import_gsplat.cc
++++ b/source/blender/io/ply/importer/ply_import_gsplat.cc
+@@ -115,6 +115,15 @@
+     return nullptr;
+   }
+   Span<float> ply_rot[4] = {*ply_rot_0_attr, *ply_rot_1_attr, *ply_rot_2_attr, *ply_rot_3_attr};
++
++  /* Attribute arrays are indexed by the vertex count in the copy loop below, so they
++   * must be as long as the point cloud. */
++  if (ply_f_dc[0].size() != data.vertices.size() ||
++      ply_opacity.size() != data.vertices.size() ||
++      ply_scale[0].size() != data.vertices.size() || ply_rot[0].size() != data.vertices.size())
++  {
++    return nullptr;
++  }
+ 
+   PointCloud *point_cloud = BKE_pointcloud_new_nomain(PointCloudType::GSplat,
+                                                       data.vertices.size());

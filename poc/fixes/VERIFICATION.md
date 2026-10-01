@@ -49,3 +49,18 @@ Finding 3 (poc3_non_numeric_count.ply / poc3_out_of_range_count.ply):
 ```
 
 Raw log: `verification.log` (this directory).
+
+## Scope of verification (read this)
+
+- **Compiled and exercised by the harness:** the `read_header()` changes
+  (`ply_import.cc`, patches 0001 and 0002) and the `import_ply_data()` change
+  (`ply_import_data.cc`, patch 0003). These are the changes that actually stop
+  the three PoCs, and they were run under ASAN and a release-semantics build.
+- **Reviewed but not compiled here:** the consumer-side guards in
+  `ply_import_mesh.cc` (skip attribute on size mismatch) and
+  `ply_import_gsplat.cc` (early return on size mismatch). Those translation
+  units pull in BKE/point-cloud dependencies that are outside this standalone
+  harness, so they were not build-tested in this environment. They are small
+  changes and should be build-tested in a full Blender build before merging;
+  with the `import_ply_data()` fix in place they are defence-in-depth only
+  (the mismatch cannot occur any more).
